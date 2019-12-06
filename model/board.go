@@ -1,5 +1,10 @@
 package model
 
+import (
+	"github.com/prometheus/common/model"
+	"github.com/tdkr/gogo/utils"
+)
+
 const (
 	CellSignWhite = -1
 	CellSignNone  = 0
@@ -57,47 +62,29 @@ func (board *Board) hasVertex(vertex int32) bool {
 	return vertex >= 0 && vertex < board.size*board.size
 }
 
-func (board *Board) getConnectedComponentInner(vertex int32, signs []int32, result []int32) {
-	result = append(result, vertex)
+func (board *Board) getConnectedComponentInner(vertex int32, signs []int32, result map[int32]interface{}) {
+	result[vertex] = struct {
+	}{}
 
 	for _, v := range board.GetNeighbors(vertex) {
 		sign := board.GetSign(v)
 		idx := sign + 1 // -1,0,1 -> 0,1,2
-		if signs[idx] > 0 && result[v] == 0 {
+		if signs[idx] > 0 && result[v] == nil {
 			board.getConnectedComponentInner(v, signs, result)
 		}
 	}
 }
 
-func (board *Board) getConnectedComponent(vertex int32, signs []int32) []int32 {
-	result := make([]int32, 0)
+func (board *Board) getConnectedComponent(vertex int32, signs []int32) map[int32]interface{} {
+	result := make(map[int32]interface{})
 	board.getConnectedComponentInner(vertex, signs, result)
 	return result
 }
 
-func filterSlice(s []int32, f func(int32) bool) []int32 {
-	results := make([]int32, 0, len(s))
-	for _, v := range s {
-		if f(v) {
-			results = append(results, v)
-		}
-	}
-	return results
-}
-
-func findSlice(s []int32, val int32) bool {
-	for _, v := range s {
-		if v == val {
-			return true
-		}
-	}
-	return false
-}
-
-func (board *Board) getChain(vertex int32) []int32 {
+func (board *Board) GetChain(vertex int32) map[int32]interface{} {
 	sign := board.GetSign(vertex)
 	signs := []int32{0, 0, 0}
-	signs[sign+1] = 1
+	signs[sign+1] = 1 // -1, 0, 1 -> 0, 1, 2
 	return board.getConnectedComponent(vertex, signs)
 }
 
@@ -109,28 +96,37 @@ func (board *Board) GetFloatingStones() []int32 {
 			continue
 		}
 
+		// 白子与空子片区
 		posArea := board.getConnectedComponent(int32(i), []int32{1, 1, 0}) // -1, 0 (sign + 1 as index 0, 1, 2)
+
+		// 黑子与空子片区
 		negArea := board.getConnectedComponent(int32(i), []int32{0, 1, 1}) // 0, 1
 
-		posDead := filterSlice(posArea, func(i int32) bool {
-			return board.arrangement[i] == CellSignWhite
-		})
-		negDead := filterSlice(negArea, func(i int32) bool {
-			return board.arrangement[i] == CellSignBlack
+		// 白子列表
+		posDead := filterMap(posArea, func(k int32, v interface{}) bool {
+			return board.arrangement[k] == CellSignWhite
 		})
 
-		posDiff := len(filterSlice(posArea, func(i int32) bool {
-			return !findSlice(posDead, i) && !findSlice(negArea, i)
+		// 黑子列表
+		negDead := filterMap(negArea, func(k int32, v interface{}) bool {
+			return board.arrangement[k] == CellSignBlack
+		})
+
+		// 白空片区中的空子数量
+		posDiff := len(filterMap(posArea, func(k int32, v interface{}) bool {
+			return posDead[k] == nil && negArea[k] == nil
 		}))
-		negDiff := len(filterSlice(negArea, func(i int32) bool {
-			return !findSlice(negDead, i) && !findSlice(posArea, i)
+
+		// 黑空片区中的空子数量
+		negDiff := len(filterMap(negArea, func(k int32, v interface{}) bool {
+			return negDead[k] == nil && posArea[k] == nil
 		}))
 
 		favorNeg := negDiff <= 1 && len(negDead) <= len(posDead)
 		favorPos := posDiff <= 1 && len(posDead) <= len(negDead)
 
-		var actualArea []int32 = nil
-		var actualDead []int32 = nil
+		var actualArea map[int32]interface{} = nil
+		var actualDead map[int32]interface{} = nil
 		if !favorNeg && favorPos {
 			actualArea = posArea
 			actualDead = posDead
@@ -138,16 +134,130 @@ func (board *Board) GetFloatingStones() []int32 {
 			actualArea = negArea
 			actualDead = negDead
 		} else {
-			actualArea = board.getChain(v)
-			actualDead = []int32{}
+			actualArea = board.GetChain(v)
+			actualDead = make(map[int32]interface{})
 		}
-
-		for _, v := range actualArea {
-			visited[v] = struct {
+		for k, _ := range actualArea {
+			visited[k] = struct {
 			}{}
 		}
-		result = append(result, actualDead...)
+		for k, _ := range actualDead {
+			result = append(result, k)
+		}
 	}
 
 	return result
+}
+
+func (board *Board) GetArrangement() []int32 {
+	return board.arrangement
+}
+
+func (board *Board) GetSize() int32 {
+	return board.size
+}
+
+func (board *Board) Clone() *Board {
+	return nil
+}
+
+func (board *Board) hasLibertiesInner(vertex int32, visited map[int32]interface{}, sign int32) bool {
+	visited[vertex] = struct {
+	}{}
+
+	for _, v := range board.GetNeighbors(vertex) {
+		x := board.GetSign(v)
+		if x == CellSignNone {
+			return true
+		}
+		if x == sign && visited[v] == nil {
+			if board.hasLibertiesInner(v, visited, sign) {
+				return true
+			}
+		}
+	}
+
+	return false
+}
+
+// 是否有气
+func (board *Board) hasLiberties(vertex int32) bool {
+	visited := make(map[int32]interface{})
+	sign := board.GetSign(vertex)
+	return board.hasLibertiesInner(vertex, visited, sign)
+}
+
+func (board *Board) GetVertexBySign(sign int32) []int32 {
+	result := make([]int32, 0, board.size*board.size)
+	for i, v := range board.arrangement {
+		if v == sign {
+			result = append(result, int32(i))
+		}
+	}
+	return result
+}
+
+func (board *Board) MakePseudoMove(sign int32, vertex int32) []int32 {
+	neighbors := board.GetNeighbors(vertex)
+	checkCapture := false
+	checkMultiDeadChains := false
+
+	isClose := true
+	for _, v := range neighbors {
+		s := board.GetSign(v)
+		if s != sign {
+			isClose = false
+			break
+		}
+	}
+	if isClose {
+		return nil
+	}
+
+	board.SetSign(vertex, sign)
+
+	if !board.hasLiberties(vertex) {
+		isPointChain := true
+
+		for _, v := range neighbors {
+			if board.GetSign(v) == sign {
+				isPointChain = false
+				break
+			}
+		}
+
+		if isPointChain {
+			checkMultiDeadChains = true
+		} else {
+			checkCapture = true
+		}
+	}
+
+	dead := make([]int32, 0)
+	deadChains := 0
+
+	for _, v := range neighbors {
+		if board.GetSign(v) != -sign || board.hasLiberties(v) {
+			continue
+		}
+
+		chain := board.GetChain(v)
+		deadChains += 1
+
+		for k, _ := range chain {
+			board.SetSign(k, 0)
+			dead = append(dead, k)
+		}
+	}
+
+	if checkMultiDeadChains && deadChains <= 1 || checkCapture && len(dead) == 0 {
+		for _, v := range dead {
+			board.SetSign(v, -sign)
+		}
+
+		board.SetSign(vertex, 0)
+		return nil
+	}
+
+	return dead
 }
