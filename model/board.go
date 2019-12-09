@@ -1,20 +1,10 @@
 package model
 
-import (
-	"github.com/prometheus/common/model"
-	"github.com/tdkr/gogo/utils"
-)
-
 const (
 	CellSignWhite = -1
 	CellSignNone  = 0
 	CellSignBlack = 1
 )
-
-type BoardCell struct {
-	X int32
-	Y int32
-}
 
 type Board struct {
 	size        int32
@@ -260,4 +250,12 @@ func (board *Board) MakePseudoMove(sign int32, vertex int32) []int32 {
 	}
 
 	return dead
+}
+
+func (board *Board) GetRelatedChains(vertex int32) map[int32]interface{} {
+	sign := board.GetSign(vertex)
+	signs := make([]int32, 3)
+	signs[1] = 1
+	signs[sign+1] = 1
+	return board.getConnectedComponent(vertex, signs)
 }

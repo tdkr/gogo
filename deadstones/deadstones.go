@@ -1,7 +1,8 @@
-package logic
+package deadstones
 
 import (
 	"github.com/tdkr/gogo/model"
+	"math"
 	"math/rand"
 )
 
@@ -103,6 +104,7 @@ func getProbabilityMap(board *model.Board, iteration int32, rand rand.Rand) map[
 }
 
 func Estimate(board *model.Board, finished bool, iterations int32, rand rand.Rand) []int32 {
+	mark := make(map[int32]interface{})
 	result := make([]int32, 0)
 
 	var floating []int32 = nil
@@ -119,18 +121,64 @@ func Estimate(board *model.Board, finished bool, iterations int32, rand rand.Ran
 	probMap := getProbabilityMap(board, iterations, rand)
 	visited := make(map[int32]interface{})
 
-	for i, v := range probMap {
+	for i, _ := range probMap {
 		sign := board.GetSign(i)
 		if sign == model.CellSignNone || visited[i] != nil {
 			continue
 		}
 
 		chain := board.GetChain(i)
-		probability := 0.0
-		for i,v := range chain {
+		probability := float32(0)
+		for k, _ := range chain {
+			t := probMap[k]
+			probability += t
+		}
+		probability /= float32(len(chain))
 
+		dead := math.Signbit(float64(probability)) != math.Signbit(float64(sign))
+
+		for k, _ := range chain {
+			if dead {
+				mark[k] = struct {
+				}{}
+				result = append(result, k)
+			}
+			visited[k] = true
 		}
 	}
 
-	return result
+	if !finished {
+		return result
+	}
+
+	// Preserve life & death status of related chains
+	visited = make(map[int32]interface{})
+	updatedResult := floating
+
+	for vertex, _ := range mark {
+		if visited[vertex] != nil {
+			continue
+		}
+
+		cnt := 0
+		related := board.GetRelatedChains(vertex)
+		for k, _ := range related {
+			if mark[k] != nil {
+				cnt += 1
+			}
+		}
+		deadProb := float32(cnt) / float32(len(related))
+		isDead := deadProb > 0.5
+
+		for k, _ := range related {
+			if isDead {
+				updatedResult = append(updatedResult, k)
+			}
+
+			visited[k] = struct {
+			}{}
+		}
+	}
+
+	return updatedResult
 }
