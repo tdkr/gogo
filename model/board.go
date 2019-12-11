@@ -259,3 +259,7 @@ func (board *Board) GetRelatedChains(vertex int32) map[int32]interface{} {
 	signs[sign+1] = 1
 	return board.getConnectedComponent(vertex, signs)
 }
+
+func (board *Board) GetLength() int32 {
+	return board.size * board.size
+}

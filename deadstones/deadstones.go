@@ -1,8 +1,8 @@
 package deadstones
 
 import (
+	"github.com/tdkr/gogo/helper"
 	"github.com/tdkr/gogo/model"
-	"math"
 	"math/rand"
 )
 
@@ -135,7 +135,7 @@ func Estimate(board *model.Board, finished bool, iterations int32, rand rand.Ran
 		}
 		probability /= float32(len(chain))
 
-		dead := math.Signbit(float64(probability)) != math.Signbit(float64(sign))
+		dead := helper.GetFloatSign(probability) != helper.GetFloatSign(sign)
 
 		for k, _ := range chain {
 			if dead {
