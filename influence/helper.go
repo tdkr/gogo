@@ -2,10 +2,11 @@ package influence
 
 import "github.com/tdkr/gogo/model"
 
-func getNeighbors(x int32, y int32) {
-
-}
-
-func getChain(board *model.Board, v int32, result map[int32]interface{}, done map[int32]interface{}, sign int32) {
-
+func getNeighbors(vec model.Vector2) []*model.Vector2 {
+	return []*model.Vector2{
+		{vec.X - 1, vec.Y},
+		{vec.X + 1, vec.Y},
+		{vec.X, vec.Y - 1},
+		{vec.X, vec.Y + 1},
+	}
 }

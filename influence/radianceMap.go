@@ -33,7 +33,7 @@ func GetRadianceMap(board *model.Board, sign int32, opts ...option) {
 				result[mv] += float32(o.p3)
 			}
 
-			for _, nv := range board.GetNeighbors(item[0]) {
+			for _, nv := range getNeighbors(item[0]/width, item[0]/height) {
 				if item[1] >= o.p1 || board.GetSign(nv) == -sign || visited[nv] != nil {
 					continue
 				}
