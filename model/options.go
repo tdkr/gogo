@@ -21,13 +21,13 @@ func Height(val int32) option {
 	}
 }
 
-func arrangement(val [][]int32) option {
+func Arrangement(val [][]int32) option {
 	return func(o *Options) {
 		o.arrangement = val
 	}
 }
 
-func captures(val []int32) option {
+func Captures(val []int32) option {
 	return func(o *Options) {
 		o.captures = val
 	}

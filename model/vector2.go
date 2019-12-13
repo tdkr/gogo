@@ -1,5 +1,10 @@
 package model
 
+import (
+	"bytes"
+	"fmt"
+)
+
 type Vector2 struct {
 	X int32
 	Y int32
@@ -30,6 +35,14 @@ func (v *Vector2) Equals(vec *Vector2) bool {
 	return v.X == vec.X && v.Y == vec.Y
 }
 
+func (v *Vector2) String() string {
+	buffer := bytes.NewBuffer([]byte{})
+	buffer.WriteByte('{')
+	buffer.WriteString(fmt.Sprintf("x=%d,y=%d", v.X, v.Y))
+	buffer.WriteByte('}')
+	return buffer.String()
+}
+
 // NewStack returns a new stack.
 func NewStack() *Stack {
 	return &Stack{}
@@ -43,7 +56,7 @@ type Stack struct {
 
 // Push adds a node to the stack.
 func (s *Stack) Push(n *Vector2) {
-	s.nodes = append(s.nodes[:s.count], n)
+	s.nodes = append(s.nodes, n)
 	s.count++
 }
 
@@ -53,6 +66,7 @@ func (s *Stack) Pop() *Vector2 {
 		return nil
 	}
 	s.count--
+	s.nodes = s.nodes[:len(s.nodes)]
 	return s.nodes[s.count]
 }
 
@@ -65,6 +79,21 @@ func (s *Stack) Find(n *Vector2) int {
 	return -1
 }
 
-func (s *Stack) Nodes() []*Vector2  {
+func (s *Stack) Nodes() []*Vector2 {
 	return s.nodes
+}
+
+func (s *Stack) Size() int {
+	return s.count
+}
+
+func (s *Stack) String() string {
+	buffer := bytes.NewBuffer([]byte{})
+	buffer.WriteByte('{')
+	for i := 0; i < s.count; i++ {
+		buffer.WriteString(s.nodes[i].String())
+		buffer.WriteByte(',')
+	}
+	buffer.WriteByte('}')
+	return buffer.String()
 }

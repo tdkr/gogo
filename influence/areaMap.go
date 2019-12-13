@@ -1,53 +1,58 @@
 package influence
 
 import (
-	"github.com/tdkr/gogo/helper"
 	"github.com/tdkr/gogo/model"
 )
 
-func GetAreaMap(board *model.Board) map[int32]int32 {
-	mark := make(map[int32]interface{})
-	result := make(map[int32]int32)
+func GetAreaMap(board [][]float32) [][]float32 {
+	result := NewFloatMatrix(board, model.StoneSignNone)
 
-	for i := int32(0); i < board.GetLength(); i++ {
-		if mark[i] != nil {
-			continue
-		}
+	width, height := GetMatrixSize(board)
 
-		if sign := board.GetSign(i); sign != model.CellSignNone {
-			mark[i] = sign
-			result[i] = sign
-			continue
-		}
+	for x := int32(0); x < width; x++ {
+		for y := int32(0); y < height; y++ {
+			v := model.NewVec2(x, y)
 
-		indicator := int32(1)
-		sign := int32(0)
-		chain := board.GetChain(i)
-
-		for k, _ := range chain {
-			if indicator == 0 {
-				break
+			if result[y][x] != model.StoneSignNone {
+				continue
 			}
 
-			for _, v := range board.GetNeighbors(k) {
-				ns := board.GetSign(v)
-				if ns == model.CellSignNone {
-					continue
-				}
+			if sign := board[y][x]; sign != model.StoneSignEmpty {
+				result[y][x] = sign
+				continue
+			}
 
-				if sign == 0 {
-					sign = helper.GetIntSign(ns)
-				} else if sign != helper.GetIntSign(ns) {
-					indicator = 0
+			chain := GetChain(board, v)
+			sign := float32(0)
+			indicator := float32(1)
+
+			for _, cv := range chain.Nodes() {
+				if indicator == 0 {
 					break
 				}
-			}
-		}
 
-		for k, _ := range chain {
-			result[k] = sign * indicator
-			mark[k] = struct {
-			}{}
+				for _, nv := range getNeighbors(cv) {
+					if !isValidVertex(board, int(nv.X), int(nv.Y)) {
+						continue
+					}
+
+					val := board[nv.Y][nv.X]
+					if val == model.StoneSignEmpty {
+						continue
+					}
+
+					if sign == 0 {
+						sign = GetFloatSign(val)
+					} else if sign != GetFloatSign(val) {
+						indicator = 0
+						break
+					}
+				}
+			}
+
+			for _, cv := range chain.Nodes() {
+				result[cv.Y][cv.X] = sign * indicator
+			}
 		}
 	}
 

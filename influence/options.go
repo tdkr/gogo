@@ -1,12 +1,12 @@
 package influence
 
 type Options struct {
-	discrete    bool
-	maxDistance int32
-	minRadiance int32
-	p1          int32
-	p2          float32
-	p3          int32
+	discrete      bool
+	maxDistance   float32
+	minRadiance   float32
+	radianceVar1  int32
+	radicanceVar2 float32
+	radicanceVar3 float32
 }
 
 type option func(o *Options)
@@ -17,38 +17,45 @@ func Discrete(val bool) option {
 	}
 }
 
-func MaxDistance(val int32) option {
+func MaxDistance(val float32) option {
 	return func(o *Options) {
 		o.maxDistance = val
 	}
 }
 
-func MinRadiance(val int32) option {
+func MinRadiance(val float32) option {
 	return func(o *Options) {
 		o.minRadiance = val
 	}
 }
 
-func P1(val int32) option {
+func RadianceVar1(val int32) option {
 	return func(o *Options) {
-		o.p1 = val
+		o.radianceVar1 = val
 	}
 }
 
-func P2(val float32) option {
+func RadicanceVar2(val float32) option {
 	return func(o *Options) {
-		o.p2 = val
+		o.radicanceVar2 = val
 	}
 }
 
-func P3(val int32) option {
+func RadicanceVar3(val float32) option {
 	return func(o *Options) {
-		o.p3 = val
+		o.radicanceVar3 = val
 	}
 }
 
 func NewOptions(opts ...option) *Options {
-	o := &Options{}
+	o := &Options{
+		discrete:      false,
+		maxDistance:   6,
+		minRadiance:   2,
+		radianceVar1:  6,
+		radicanceVar2: 1.5,
+		radicanceVar3: 2,
+	}
 	for _, v := range opts {
 		v(o)
 	}

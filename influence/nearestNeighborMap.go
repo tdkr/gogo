@@ -1,37 +1,34 @@
 package influence
 
 import (
-	"github.com/tdkr/gogo/model"
 	"math"
 )
 
-func GetNearestNeighborMap(board *model.Board, sign int32) map[int32]int32 {
-	var maxInt32 int32 = math.MaxInt32
-	var min int32 = maxInt32
-	result := make(map[int32]int32)
-	width := board.GetSize()
-	height := board.GetSize()
+func GetNearestNeighborMap(board [][]float32, sign float32) [][]float32 {
+	var inf float32 = math.MaxFloat32
+	var min float32 = inf
+	result := NewFloatMatrix(board, inf)
+	width, height := GetMatrixSize(board)
 
 	f := func(x int32, y int32) {
-		vertex := y*width + x
-		if board.GetSign(vertex) == sign {
+		if board[y][x] == sign {
 			min = 0
 		} else {
 			min++
 		}
 
-		if min < result[vertex] {
-			result[vertex] = min
+		if min < result[y][x] {
+			result[y][x] = min
 		} else {
-			min = result[vertex]
+			min = result[y][x]
 		}
 	}
 
 	for y := int32(0); y < height; y++ {
-		min = maxInt32
+		min = inf
 
 		for x := int32(0); x < width; x++ {
-			old := maxInt32
+			old := inf
 
 			f(x, y)
 			old = min
@@ -49,10 +46,10 @@ func GetNearestNeighborMap(board *model.Board, sign int32) map[int32]int32 {
 	}
 
 	for y := height - 1; y >= 0; y-- {
-		min = maxInt32
+		min = inf
 
 		for x := width - 1; x >= 0; x-- {
-			old := maxInt32
+			old := inf
 
 			f(x, y)
 			old = min

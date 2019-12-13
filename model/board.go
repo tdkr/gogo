@@ -3,8 +3,9 @@ package model
 import "math"
 
 const (
+	StoneSignNone  = -2
 	StoneSignWhite = -1
-	StoneSignNone  = 0
+	StoneSignEmpty = 0
 	StoneSignBlack = 1
 )
 
@@ -37,12 +38,20 @@ func NewBoard(opts ...option) *Board {
 	return board
 }
 
+func (board *Board) Width() int32 {
+	return board.width
+}
+
+func (board *Board) Height() int32 {
+	return board.height
+}
+
 func (board *Board) Get(vec *Vector2) int32 {
 	return board.arrangement[vec.Y][vec.X]
 }
 
 func (board *Board) Get2(x, y int32) int32 {
-	return board.arrangement[x][y]
+	return board.arrangement[y][x]
 }
 
 func (board *Board) Set(vec *Vector2, sign int32) {
@@ -85,7 +94,7 @@ func (board *Board) HasVertex2(x, y int32) bool {
 func (board *Board) Clear() {
 	for x := int32(0); x < board.width; x++ {
 		for y := int32(0); y < board.height; y++ {
-			board.Set2(x, y, StoneSignNone)
+			board.Set2(x, y, StoneSignEmpty)
 		}
 	}
 }
@@ -97,7 +106,7 @@ func (board *Board) IsSquare() bool {
 func (board *Board) IsEmpty() bool {
 	for x := int32(0); x < board.width; x++ {
 		for y := int32(0); y < board.height; y++ {
-			if board.Get2(x, y) != StoneSignNone {
+			if board.Get2(x, y) != StoneSignEmpty {
 				return false
 			}
 		}
@@ -182,7 +191,7 @@ func (board *Board) hasLibertiesInner(vec *Vector2, visited map[int32]interface{
 	neighbors := board.GetNeighbors(vec, false)
 	for _, v := range neighbors {
 		s := board.Get(v)
-		if s == StoneSignNone {
+		if s == StoneSignEmpty {
 			return true
 		}
 		if s == sign && visited[v.HashCode()] == nil {
@@ -211,7 +220,7 @@ func (board *Board) GetRelatedChain(vec *Vector2) []*Vector2 {
 	}
 
 	sign := board.Get(vec)
-	if sign == StoneSignNone {
+	if sign == StoneSignEmpty {
 		return []*Vector2{}
 	}
 
@@ -243,7 +252,7 @@ func (board *Board) GetScore(areaMap [][]int32, komi float32, handicap int32) *S
 	for x := int32(0); x < board.width; x++ {
 		for y := int32(0); y < board.height; y++ {
 			sign := areaMap[x][y]
-			if sign == StoneSignNone {
+			if sign == StoneSignEmpty {
 				continue
 			}
 			scoreIdx := 0
@@ -254,7 +263,7 @@ func (board *Board) GetScore(areaMap [][]int32, komi float32, handicap int32) *S
 				scoreIdx = ScoreIndexWhite
 			}
 			score.Area[scoreIdx]++
-			if board.Get2(x, y) == StoneSignNone {
+			if board.Get2(x, y) == StoneSignEmpty {
 				score.Territory[scoreIdx]++
 			}
 		}
@@ -285,7 +294,7 @@ func (board *Board) IsValid() bool {
 func (board *Board) MakeMove(sign int32, vec *Vector2) *Board {
 	move := board.Clone()
 
-	if sign == StoneSignNone || !board.HasVertex(vec) {
+	if sign == StoneSignEmpty || !board.HasVertex(vec) {
 		return move
 	}
 
@@ -299,7 +308,7 @@ func (board *Board) MakeMove(sign int32, vec *Vector2) *Board {
 	}
 
 	for _, v := range deadNeighbors {
-		if move.Get(v) == StoneSignNone {
+		if move.Get(v) == StoneSignEmpty {
 			continue
 		}
 
