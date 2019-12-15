@@ -1,8 +1,9 @@
 package influence
 
 import (
-	"github.com/tdkr/gogo/model"
 	"math"
+
+	"github.com/tdkr/gogo/model"
 )
 
 func getNeighbors(vec *model.Vector2) []*model.Vector2 {
@@ -115,6 +116,17 @@ func NewFloatMatrix(data [][]float32, val float32) [][]float32 {
 		ret[i] = make([]float32, len(v))
 		for i2, _ := range v {
 			ret[i][i2] = val
+		}
+	}
+	return ret
+}
+
+func DuplicateFloatMatrix(data [][]float32) [][]float32 {
+	ret := make([][]float32, len(data))
+	for i, v := range data {
+		ret[i] = make([]float32, len(v))
+		for i2, v2 := range v {
+			ret[i][i2] = v2
 		}
 	}
 	return ret

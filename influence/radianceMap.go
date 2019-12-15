@@ -6,7 +6,7 @@ import (
 
 type castItem struct {
 	vec   *model.Vector2
-	level int32
+	level float32
 }
 
 func GetRadianceMap(board [][]float32, sign float32, opts ...option) [][]float32 {
@@ -48,8 +48,9 @@ func GetRadianceMap(board [][]float32, sign float32, opts ...option) [][]float32
 
 		for len(queue) > 0 {
 			item := queue[0]
-			queue[0] = queue[len(queue)-1]
-			queue = queue[:len(queue)-1]
+			// queue[0] = queue[len(queue)-1]
+			// queue = queue[:len(queue)-1]
+			queue = queue[1:]
 
 			mv := getMirroredVertex(item.vec)
 			if mv.Equals(item.vec) {
@@ -60,7 +61,7 @@ func GetRadianceMap(board [][]float32, sign float32, opts ...option) [][]float32
 
 			for _, nv := range getNeighbors(item.vec) {
 				if item.level >= o.radianceVar1 ||
-					isValidVertex(board, int(item.vec.X), int(item.vec.Y)) && board[item.vec.Y][item.vec.X] == -sign ||
+					isValidVertex(board, int(nv.X), int(nv.Y)) && board[nv.Y][nv.X] == -sign ||
 					visited[nv.HashCode()] != nil {
 					continue
 				}
@@ -79,7 +80,7 @@ func GetRadianceMap(board [][]float32, sign float32, opts ...option) [][]float32
 		for y := int32(0); y < height; y++ {
 			v := model.NewVec2(x, y)
 
-			if !isValidVertex(board, int(v.X), int(v.Y)) || board[v.Y][v.X] != sign || visited[v.HashCode()] != nil {
+			if board[y][x] != sign || visited[v.HashCode()] != nil {
 				continue
 			}
 
