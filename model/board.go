@@ -566,3 +566,24 @@ func (board *Board) GetFloatingStones() *VecStack {
 	}
 	return result
 }
+
+func (board *Board) SetCapture(vec *Vector2) {
+	sign := board.Get(vec)
+	if board.Get(vec) == StoneSignEmpty {
+		return
+	}
+	idx := (-sign + 1) / 2
+	board.captures[idx]++
+	board.Set(vec, StoneSignEmpty)
+}
+
+func (board *Board) GetArrangementAsFloat32() [][]float32 {
+	ret := make([][]float32, len(board.arrangement))
+	for i, v := range board.arrangement {
+		ret[i] = make([]float32, len(v))
+		for i2, v2 := range v {
+			ret[i][i2] = float32(v2)
+		}
+	}
+	return ret
+}

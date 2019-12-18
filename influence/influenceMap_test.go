@@ -30,7 +30,7 @@ func TestGetInfluenceMap(t *testing.T) {
 		for y := 0; y < len(UnfinishedBoard); y++ {
 			for x := 0; x < len(UnfinishedBoard[y]); x++ {
 				if result[y][x] < -1 || result[y][x] > 1 {
-					t.Errorf("invalid number")
+					t.Errorf("invalid number : %f", result[y][x])
 				}
 			}
 		}
@@ -42,7 +42,7 @@ func TestGetInfluenceMap(t *testing.T) {
 		for y := 0; y < len(UnfinishedBoard); y++ {
 			for x := 0; x < len(UnfinishedBoard[y]); x++ {
 				if result[y][x] != -1 || result[y][x] != 0 || result[y][x] != 1 {
-					t.Errorf("invalid number")
+					t.Errorf("invalid number : %f", result[y][x])
 				}
 			}
 		}

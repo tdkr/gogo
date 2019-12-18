@@ -1,7 +1,6 @@
 package influence
 
 import (
-	"fmt"
 	"math"
 
 	"github.com/tdkr/gogo/model"
@@ -66,7 +65,7 @@ func GetInfluenceMap(board [][]float32, opts ...option) [][]float32 {
 				result[y][x] = GetFloatSign(result[y][x])
 			}
 
-			fmt.Println("iterate1", x, y, result[y][x], max, min)
+			//fmt.Println("iterate1", x, y, result[y][x], max, min)
 		}
 	}
 
