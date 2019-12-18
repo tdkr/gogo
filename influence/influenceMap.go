@@ -1,8 +1,10 @@
 package influence
 
 import (
-	"github.com/tdkr/gogo/model"
+	"fmt"
 	"math"
+
+	"github.com/tdkr/gogo/model"
 )
 
 func GetInfluenceMap(board [][]float32, opts ...option) [][]float32 {
@@ -17,8 +19,9 @@ func GetInfluenceMap(board [][]float32, opts ...option) [][]float32 {
 	prMap := GetRadianceMap(board, 1)
 	nrMap := GetRadianceMap(board, -1)
 
-	max := float32(math.MaxFloat32)
-	min := -max
+	inf := float32(math.MaxFloat32)
+	max := -inf
+	min := inf
 
 	result := NewFloatMatrix(len(board), len(board[0]), 0)
 
@@ -36,10 +39,10 @@ func GetInfluenceMap(board [][]float32, opts ...option) [][]float32 {
 				dim = true
 			} else if s > 0 {
 				faraway = pnnMap[y][x] > o.maxDistance
-				dim = prMap[y][x] < o.minRadiance
+				dim = float32(math.Round(float64(prMap[y][x]))) < o.minRadiance
 			} else {
 				faraway = nnnMap[y][x] > o.maxDistance
-				dim = nrMap[y][x] < o.minRadiance
+				dim = float32(math.Round(float64(nrMap[y][x]))) < o.minRadiance
 			}
 
 			if faraway || dim {
@@ -60,8 +63,10 @@ func GetInfluenceMap(board [][]float32, opts ...option) [][]float32 {
 			}
 
 			if o.discrete {
-				result[y][x] = float32(GetFloatSign(result[y][x]))
+				result[y][x] = GetFloatSign(result[y][x])
 			}
+
+			fmt.Println("iterate1", x, y, result[y][x], max, min)
 		}
 	}
 
@@ -80,20 +85,19 @@ func GetInfluenceMap(board [][]float32, opts ...option) [][]float32 {
 			mSign := GetFloatSign(result[y][x])
 
 			if mSign != 0 {
-				neighbors := getNeighbors(v)
-
-				if len(neighbors) >= 2 {
-					reset := true
-					for _, v := range neighbors {
-						if isValidVertex(board, int(v.X), int(v.Y)) && GetFloatSign(board[v.Y][v.X]) == mSign {
-							reset = false
-							break
+				cnt1, cnt2 := 0, 0
+				for _, v := range getNeighbors(v) {
+					if isValidVertex(board, int(v.X), int(v.Y)) {
+						cnt1++
+						if GetFloatSign(board[v.Y][v.X]) == mSign {
+							cnt2++
 						}
 					}
-					if reset {
-						result[y][x] = 0
-						continue
-					}
+				}
+
+				if cnt1 >= 2 && cnt2 == cnt1 {
+					result[y][x] = 0
+					continue
 				}
 			}
 
@@ -110,8 +114,8 @@ func GetInfluenceMap(board [][]float32, opts ...option) [][]float32 {
 				if len(posNeighbors) == 1 {
 					pv := posNeighbors[0]
 
-					if isValidVertex(board, int(pv.X), int(pv.Y)) && board[pv.Y][pv.X] == mSign {
-						result[pv.Y][pv.X] = 0
+					if board[pv.Y][pv.X] == mSign {
+						result[y][x] = 0
 						continue
 					}
 				}
@@ -168,6 +172,8 @@ func GetInfluenceMap(board [][]float32, opts ...option) [][]float32 {
 					result[y][x] = MaxFloat(-result[y][x]/min, -1)
 				}
 			}
+
+			// fmt.Println("iterate2", x, y, result[y][x], max, min)
 		}
 	}
 

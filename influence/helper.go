@@ -1,8 +1,9 @@
 package influence
 
 import (
-	"github.com/tdkr/gogo/model"
 	"math"
+
+	"github.com/tdkr/gogo/model"
 )
 
 func getNeighbors(vec *model.Vector2) []*model.Vector2 {

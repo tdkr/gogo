@@ -4,7 +4,7 @@ type Options struct {
 	discrete      bool
 	maxDistance   float32
 	minRadiance   float32
-	radianceVar1  int32
+	radianceVar1  float32
 	radicanceVar2 float32
 	radicanceVar3 float32
 }
@@ -29,7 +29,7 @@ func MinRadiance(val float32) option {
 	}
 }
 
-func RadianceVar1(val int32) option {
+func RadianceVar1(val float32) option {
 	return func(o *Options) {
 		o.radianceVar1 = val
 	}
