@@ -22,7 +22,7 @@ func GetInfluenceMap(board [][]float32, opts ...option) [][]float32 {
 	max := -inf
 	min := inf
 
-	result := NewFloatMatrix(len(board), len(board[0]), 0)
+	result := CloneFloatMatrix(areaMap)
 
 	for x := int32(0); x < width; x++ {
 		for y := int32(0); y < height; y++ {
@@ -77,7 +77,7 @@ func GetInfluenceMap(board [][]float32, opts ...option) [][]float32 {
 				continue
 			}
 
-			v := model.NewVec2(x, y)
+			v := model.Vect2(x, y)
 
 			// Prevent single point areas
 
@@ -103,7 +103,7 @@ func GetInfluenceMap(board [][]float32, opts ...option) [][]float32 {
 			// Fix ragged areas
 
 			if mSign != 0 {
-				posNeighbors := make([]*model.Vector2, 0)
+				posNeighbors := make([]model.Vector2, 0)
 				for _, nv := range getNeighbors(v) {
 					if isValidVertex(board, int(nv.X), int(nv.Y)) && GetFloatSign(result[nv.Y][nv.X]) == mSign {
 						posNeighbors = append(posNeighbors, nv)
@@ -125,7 +125,7 @@ func GetInfluenceMap(board [][]float32, opts ...option) [][]float32 {
 			distance := MinInt(x, y, width-x-1, height-y-1)
 
 			if distance <= 2 && mSign == 0 {
-				signedNeighbors := make([]*model.Vector2, 0)
+				signedNeighbors := make([]model.Vector2, 0)
 				for _, nv := range getNeighbors(v) {
 					if isValidVertex(result, int(nv.X), int(nv.Y)) && result[nv.Y][nv.X] != 0 {
 						signedNeighbors = append(signedNeighbors, nv)

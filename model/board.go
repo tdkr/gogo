@@ -51,7 +51,7 @@ func (board *Board) Height() int32 {
 	return board.height
 }
 
-func (board *Board) Get(vec *Vector2) int32 {
+func (board *Board) Get(vec Vector2) int32 {
 	return board.arrangement[vec.Y][vec.X]
 }
 
@@ -59,7 +59,7 @@ func (board *Board) Get2(x, y int32) int32 {
 	return board.arrangement[y][x]
 }
 
-func (board *Board) Set(vec *Vector2, sign int32) {
+func (board *Board) Set(vec Vector2, sign int32) {
 	board.arrangement[vec.Y][vec.X] = sign
 }
 
@@ -71,24 +71,24 @@ func (board *Board) Clone() *Board {
 	return nil
 }
 
-func (board *Board) Diff(b *Board) []*Vector2 {
+func (board *Board) Diff(b *Board) []Vector2 {
 	if board.width != b.width || board.height != b.height {
 		return nil
 	}
 
-	result := make([]*Vector2, 0)
+	result := make([]Vector2, 0)
 
 	for x := int32(0); x < board.width; x++ {
 		for y := int32(0); y < board.height; y++ {
 			if board.Get2(x, y) != b.Get2(x, y) {
-				result = append(result, NewVec2(x, y))
+				result = append(result, Vect2(x, y))
 			}
 		}
 	}
 	return result
 }
 
-func (board *Board) HasVertex(v *Vector2) bool {
+func (board *Board) HasVertex(v Vector2) bool {
 	return 0 <= v.X && v.X < board.width && 0 <= v.Y && v.Y < board.height
 }
 
@@ -119,41 +119,41 @@ func (board *Board) IsEmpty() bool {
 	return true
 }
 
-func (board *Board) GetDistance(v1 *Vector2, v2 *Vector2) int32 {
+func (board *Board) GetDistance(v1 Vector2, v2 Vector2) int32 {
 	return int32(math.Abs(float64(v1.X-v2.X)) + math.Abs(float64(v1.Y-v2.Y)))
 }
 
-func (board *Board) GetNeighbors(vec *Vector2, ignoreBoard bool) []*Vector2 {
+func (board *Board) GetNeighbors(vec Vector2, ignoreBoard bool) []Vector2 {
 	if !ignoreBoard && !board.HasVertex(vec) {
-		return []*Vector2{}
+		return []Vector2{}
 	}
 
 	if ignoreBoard {
-		return []*Vector2{
-			NewVec2(vec.X-1, vec.Y),
-			NewVec2(vec.X+1, vec.Y),
-			NewVec2(vec.X, vec.Y-1),
-			NewVec2(vec.X, vec.Y+1),
+		return []Vector2{
+			Vect2(vec.X-1, vec.Y),
+			Vect2(vec.X+1, vec.Y),
+			Vect2(vec.X, vec.Y-1),
+			Vect2(vec.X, vec.Y+1),
 		}
 	}
 
-	result := make([]*Vector2, 0, 4)
+	result := make([]Vector2, 0, 4)
 	if vec.X > 0 {
-		result = append(result, NewVec2(vec.X-1, vec.Y))
+		result = append(result, Vect2(vec.X-1, vec.Y))
 		if vec.X < board.width-1 {
-			result = append(result, NewVec2(vec.X+1, vec.Y))
+			result = append(result, Vect2(vec.X+1, vec.Y))
 		}
 	}
 	if vec.Y > 0 {
-		result = append(result, NewVec2(vec.X, vec.Y-1))
+		result = append(result, Vect2(vec.X, vec.Y-1))
 		if vec.Y < board.height-1 {
-			result = append(result, NewVec2(vec.X, vec.Y+1))
+			result = append(result, Vect2(vec.X, vec.Y+1))
 		}
 	}
 	return result
 }
 
-func (board *Board) getConnectedComponentInner(vec *Vector2, signs map[int32]interface{}, result *VecStack) {
+func (board *Board) getConnectedComponentInner(vec Vector2, signs map[int32]interface{}, result *VecStack) {
 	if !board.HasVertex(vec) {
 		return
 	}
@@ -173,13 +173,13 @@ func (board *Board) getConnectedComponentInner(vec *Vector2, signs map[int32]int
 	}
 }
 
-func (board *Board) GetConnectedComponent(vec *Vector2, signs map[int32]interface{}) *VecStack {
+func (board *Board) GetConnectedComponent(vec Vector2, signs map[int32]interface{}) *VecStack {
 	result := NewVecStack()
 	board.getConnectedComponentInner(vec, signs, result)
 	return result
 }
 
-func (board *Board) GetChain(vec *Vector2) *VecStack {
+func (board *Board) GetChain(vec Vector2) *VecStack {
 	sign := board.Get(vec)
 	result := NewVecStack()
 	board.getConnectedComponentInner(vec, map[int32]interface{}{
@@ -189,7 +189,7 @@ func (board *Board) GetChain(vec *Vector2) *VecStack {
 	return result
 }
 
-func (board *Board) hasLibertiesInner(vec *Vector2, visited map[int32]interface{}, sign int32) bool {
+func (board *Board) hasLibertiesInner(vec Vector2, visited map[int32]interface{}, sign int32) bool {
 	visited[vec.HashCode()] = struct {
 	}{}
 
@@ -209,7 +209,7 @@ func (board *Board) hasLibertiesInner(vec *Vector2, visited map[int32]interface{
 	return false
 }
 
-func (board *Board) HasLiberties(vec *Vector2) bool {
+func (board *Board) HasLiberties(vec Vector2) bool {
 	if !board.HasVertex(vec) {
 		return false
 	}
@@ -219,14 +219,14 @@ func (board *Board) HasLiberties(vec *Vector2) bool {
 	return board.hasLibertiesInner(vec, visited, board.Get(vec))
 }
 
-func (board *Board) GetRelatedChain(vec *Vector2) []*Vector2 {
+func (board *Board) GetRelatedChain(vec Vector2) []Vector2 {
 	if !board.HasVertex(vec) {
-		return []*Vector2{}
+		return []Vector2{}
 	}
 
 	sign := board.Get(vec)
 	if sign == StoneSignEmpty {
-		return []*Vector2{}
+		return []Vector2{}
 	}
 
 	signs := make(map[int32]interface{})
@@ -277,7 +277,7 @@ func (board *Board) GetScore(areaMap [][]int32, komi float32, handicap int32) *S
 	return score
 }
 
-func (board *Board) Vec2Coord(vec *Vector2) int32 {
+func (board *Board) Vec2Coord(vec Vector2) int32 {
 	if !board.HasVertex(vec) {
 		return -1
 	}
@@ -285,10 +285,10 @@ func (board *Board) Vec2Coord(vec *Vector2) int32 {
 	return vec.X + vec.Y*board.height
 }
 
-func (board *Board) Coord2Vec(coord int32) *Vector2 {
+func (board *Board) Coord2Vec(coord int32) Vector2 {
 	x := coord % board.height
 	y := coord / board.height
-	return NewVec2(x, y)
+	return Vect2(x, y)
 }
 
 //TODO
@@ -296,7 +296,7 @@ func (board *Board) IsValid() bool {
 	return true
 }
 
-func (board *Board) MakeMove(sign int32, vec *Vector2) *Board {
+func (board *Board) MakeMove(sign int32, vec Vector2) *Board {
 	move := board.Clone()
 
 	if sign == StoneSignEmpty || !board.HasVertex(vec) {
@@ -305,7 +305,7 @@ func (board *Board) MakeMove(sign int32, vec *Vector2) *Board {
 
 	move.Set(vec, sign)
 
-	deadNeighbors := make([]*Vector2, 0, 0)
+	deadNeighbors := make([]Vector2, 0, 0)
 	for _, v := range move.GetNeighbors(vec, false) {
 		if move.Get(v) == -sign && !move.HasLiberties(v) {
 			deadNeighbors = append(deadNeighbors, v)
@@ -336,29 +336,29 @@ func (board *Board) MakeMove(sign int32, vec *Vector2) *Board {
 	return move
 }
 
-func (board *Board) GetHandicapPlacement(count int32, tygemFlag bool) []*Vector2 {
-	result := make([]*Vector2, 0)
+func (board *Board) GetHandicapPlacement(count int32, tygemFlag bool) []Vector2 {
+	result := make([]Vector2, 0)
 
 	if board.width <= 6 || board.height <= 6 || count < 2 {
 		return result
 	}
 
-	near := NewVec2(2, 2)
+	near := Vect2(2, 2)
 	if board.width >= 13 {
 		near.X = 3
 	}
 	if board.height >= 13 {
 		near.Y = 3
 	}
-	far := NewVec2(board.width-near.X-1, board.height-near.Y-1)
-	middle := NewVec2((board.width-1)/2, (board.height-1)/2)
+	far := Vect2(board.width-near.X-1, board.height-near.Y-1)
+	middle := Vect2((board.width-1)/2, (board.height-1)/2)
 
 	if tygemFlag {
-		result = []*Vector2{
+		result = []Vector2{
 			near, far, far, near,
 		}
 	} else {
-		result = []*Vector2{
+		result = []Vector2{
 			near, far, near, far,
 		}
 	}
@@ -368,22 +368,22 @@ func (board *Board) GetHandicapPlacement(count int32, tygemFlag bool) []*Vector2
 			result = append(result, middle)
 		}
 
-		result = append(result, NewVec2(near.X, middle.Y))
-		result = append(result, NewVec2(far.X, middle.Y))
+		result = append(result, Vect2(near.X, middle.Y))
+		result = append(result, Vect2(far.X, middle.Y))
 
 		if count == 7 {
 			result = append(result, middle)
 		}
 
-		result = append(result, NewVec2(middle.X, near.Y))
-		result = append(result, NewVec2(middle.X, far.Y))
-		result = append(result, NewVec2(middle.X, middle.Y))
+		result = append(result, Vect2(middle.X, near.Y))
+		result = append(result, Vect2(middle.X, far.Y))
+		result = append(result, Vect2(middle.X, middle.Y))
 	} else if board.width%2 != 0 && board.width != 7 {
-		result = append(result, NewVec2(middle.X, near.Y))
-		result = append(result, NewVec2(middle.X, far.Y))
+		result = append(result, Vect2(middle.X, near.Y))
+		result = append(result, Vect2(middle.X, far.Y))
 	} else if board.height%2 != 0 && board.height != 7 {
-		result = append(result, NewVec2(near.X, middle.Y))
-		result = append(result, NewVec2(far.X, middle.Y))
+		result = append(result, Vect2(near.X, middle.Y))
+		result = append(result, Vect2(far.X, middle.Y))
 	}
 
 	return result[:count]
@@ -427,19 +427,19 @@ func (board *Board) Equals(b *Board) bool {
 	return true
 }
 
-func (board *Board) GetVertexBySign(sign int32) []*Vector2 {
-	ret := make([]*Vector2, 0)
+func (board *Board) GetVertexBySign(sign int32) []Vector2 {
+	ret := make([]Vector2, 0)
 	for i := int32(0); i < board.width; i++ {
 		for j := int32(0); j < board.height; j++ {
 			if board.arrangement[i][j] == sign {
-				ret = append(ret, NewVec2(i, j))
+				ret = append(ret, Vect2(i, j))
 			}
 		}
 	}
 	return ret
 }
 
-func (board *Board) MakePseudoMove(sign int32, vec *Vector2) []*Vector2 {
+func (board *Board) MakePseudoMove(sign int32, vec Vector2) []Vector2 {
 	neighbors := board.GetNeighbors(vec, false)
 	checkCapture := false
 	checkMultiDeadChains := false
@@ -468,7 +468,7 @@ func (board *Board) MakePseudoMove(sign int32, vec *Vector2) []*Vector2 {
 		checkCapture = !isPointChain
 	}
 
-	dead := make([]*Vector2, 0)
+	dead := make([]Vector2, 0)
 	deadChains := 0
 
 	for _, v := range neighbors {
@@ -503,7 +503,7 @@ func (board *Board) GetFloatingStones() *VecStack {
 
 	for i := int32(0); i < board.width; i++ {
 		for j := int32(0); j < board.height; j++ {
-			v := NewVec2(i, j)
+			v := Vect2(i, j)
 
 			if board.Get(v) != StoneSignEmpty || visited[v.HashCode()] != nil {
 				continue
@@ -521,8 +521,8 @@ func (board *Board) GetFloatingStones() *VecStack {
 				StoneSignBlack: struct {
 				}{},
 			})
-			posDead := make([]*Vector2, 0)
-			negDead := make([]*Vector2, 0)
+			posDead := make([]Vector2, 0)
+			negDead := make([]Vector2, 0)
 			posDiff, negDiff := 0, 0
 			for _, v := range posArea.Nodes() {
 				if board.Get(v) == StoneSignWhite {
@@ -543,7 +543,7 @@ func (board *Board) GetFloatingStones() *VecStack {
 			favorPos := posDiff <= 1 && len(posDead) <= len(negDead)
 
 			var actualArea *VecStack = nil
-			var actualDead []*Vector2 = nil
+			var actualDead []Vector2 = nil
 			if !favorNeg && favorPos {
 				actualArea = posArea
 				actualDead = posDead
@@ -567,7 +567,7 @@ func (board *Board) GetFloatingStones() *VecStack {
 	return result
 }
 
-func (board *Board) SetCapture(vec *Vector2) {
+func (board *Board) SetCapture(vec Vector2) {
 	sign := board.Get(vec)
 	if board.Get(vec) == StoneSignEmpty {
 		return

@@ -10,32 +10,19 @@ type Vector2 struct {
 	Y int32
 }
 
-func NewVec2(x, y int32) *Vector2 {
-	return &Vector2{X: x, Y: y}
+func Vect2(x, y int32) Vector2 {
+	return Vector2{X: x, Y: y}
 }
 
-func (v *Vector2) HashCode() int32 {
+func (v Vector2) HashCode() int32 {
 	return v.X<<16 + v.Y<<8
 }
 
-func (v *Vector2) Set(x, y int32) {
-	v.X = x
-	v.Y = y
-}
-
-func (v *Vector2) SetX(x int32) {
-	v.X = x
-}
-
-func (v *Vector2) SetY(y int32) {
-	v.Y = y
-}
-
-func (v *Vector2) Equals(vec *Vector2) bool {
+func (v Vector2) Equals(vec Vector2) bool {
 	return v.X == vec.X && v.Y == vec.Y
 }
 
-func (v *Vector2) String() string {
+func (v Vector2) String() string {
 	buffer := bytes.NewBuffer([]byte{})
 	buffer.WriteByte('{')
 	buffer.WriteString(fmt.Sprintf("x=%d,y=%d", v.X, v.Y))
@@ -50,27 +37,34 @@ func NewVecStack() *VecStack {
 
 // VecStack is a basic LIFO stack that resizes as needed.
 type VecStack struct {
-	nodes []*Vector2
+	nodes []Vector2
 	count int
 }
 
 // Push adds a node to the stack.
-func (s *VecStack) Push(n *Vector2) {
+func (s *VecStack) Push(n Vector2) {
 	s.nodes = append(s.nodes, n)
 	s.count++
 }
 
-// Pop removes and returns a node from the stack in last to first order.
-func (s *VecStack) Pop() *Vector2 {
-	if s.count == 0 {
+func (s *VecStack) Back() *Vector2 {
+	if len(s.nodes) == 0 {
 		return nil
+	}
+	node := s.nodes[len(s.nodes)-1]
+	return &node
+}
+
+// Pop removes and returns a node from the stack in last to first order.
+func (s *VecStack) Pop() {
+	if s.count == 0 {
+		return
 	}
 	s.count--
 	s.nodes = s.nodes[:len(s.nodes)]
-	return s.nodes[s.count]
 }
 
-func (s *VecStack) Find(n *Vector2) int {
+func (s *VecStack) Find(n Vector2) int {
 	for i, v := range s.nodes {
 		if v.Equals(n) {
 			return i
@@ -79,7 +73,7 @@ func (s *VecStack) Find(n *Vector2) int {
 	return -1
 }
 
-func (s *VecStack) Nodes() []*Vector2 {
+func (s *VecStack) Nodes() []Vector2 {
 	return s.nodes
 }
 

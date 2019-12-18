@@ -7,7 +7,7 @@ import (
 )
 
 func playTillEnd(board *model.Board, sign int32, rnd rand.Rand) {
-	illegalVerts := make([]*model.Vector2, 0, 0)
+	illegalVerts := make([]model.Vector2, 0, 0)
 	finished := [2]bool{false, false}
 	freeVerts := board.GetVertexBySign(model.StoneSignEmpty)
 
@@ -51,7 +51,7 @@ func playTillEnd(board *model.Board, sign int32, rnd rand.Rand) {
 
 	for i := int32(0); i < board.Width(); i++ {
 		for j := int32(0); j < board.Height(); j++ {
-			v := model.NewVec2(i, j)
+			v := model.Vect2(i, j)
 
 			if board.Get(v) != model.StoneSignEmpty {
 				continue
@@ -90,7 +90,7 @@ func getProbalityMap(board *model.Board, iterations int32, rand rand.Rand) [][]f
 
 		for i := int32(0); i < dupBoard.Width(); i++ {
 			for j := int32(0); j < dupBoard.Height(); j++ {
-				v := model.NewVec2(i, j)
+				v := model.Vect2(i, j)
 				s := dupBoard.Get(v)
 				if s == model.StoneSignWhite {
 					whiteSigns[j][i] += 1
@@ -131,7 +131,7 @@ func Guess(board *model.Board, finished bool, iteration int32, rnd rand.Rand) *m
 
 	for i := int32(0); i < board.Width(); i++ {
 		for j := int32(0); j < board.Height(); j++ {
-			v := model.NewVec2(i, j)
+			v := model.Vect2(i, j)
 			sign := board.Get(v)
 			if sign == model.StoneSignEmpty || visited[v.HashCode()] != nil {
 				continue

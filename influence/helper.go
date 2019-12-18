@@ -6,8 +6,8 @@ import (
 	"github.com/tdkr/gogo/model"
 )
 
-func getNeighbors(vec *model.Vector2) []*model.Vector2 {
-	return []*model.Vector2{
+func getNeighbors(vec model.Vector2) []model.Vector2 {
+	return []model.Vector2{
 		{vec.X - 1, vec.Y},
 		{vec.X + 1, vec.Y},
 		{vec.X, vec.Y - 1},
@@ -15,7 +15,7 @@ func getNeighbors(vec *model.Vector2) []*model.Vector2 {
 	}
 }
 
-func getChainInner(board [][]float32, vec *model.Vector2, result *model.VecStack, visited map[int32]interface{}, sign float32) {
+func getChainInner(board [][]float32, vec model.Vector2, result *model.VecStack, visited map[int32]interface{}, sign float32) {
 	result.Push(vec)
 	visited[vec.HashCode()] = struct {
 	}{}
@@ -29,7 +29,7 @@ func getChainInner(board [][]float32, vec *model.Vector2, result *model.VecStack
 	}
 }
 
-func GetChain(board [][]float32, v *model.Vector2) *model.VecStack {
+func GetChain(board [][]float32, v model.Vector2) *model.VecStack {
 	sign := board[v.Y][v.X]
 	result := model.NewVecStack()
 	visited := make(map[int32]interface{})
@@ -129,4 +129,15 @@ func isValidVertex(data [][]float32, x, y int) bool {
 		return false
 	}
 	return x < len(data[y])
+}
+
+func CloneFloatMatrix(m [][]float32) [][]float32 {
+	ret := make([][]float32, len(m))
+	for i, v := range m {
+		ret[i] = make([]float32, len(v))
+		for i2, v2 := range v {
+			ret[i][i2] = v2
+		}
+	}
+	return ret
 }

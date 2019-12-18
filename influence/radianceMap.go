@@ -5,7 +5,7 @@ import (
 )
 
 type castItem struct {
-	vec   *model.Vector2
+	vec   model.Vector2
 	level float32
 }
 
@@ -15,11 +15,11 @@ func GetRadianceMap(board [][]float32, sign float32, opts ...option) [][]float32
 	visited := make(map[int32]interface{})
 	result := NewFloatMatrix(len(board), len(board[0]), 0)
 
-	getMirroredVertex := func(v *model.Vector2) *model.Vector2 {
+	getMirroredVertex := func(v model.Vector2) model.Vector2 {
 		if isValidVertex(board, int(v.X), int(v.Y)) {
-			return model.NewVec2(v.X, v.Y)
+			return model.Vect2(v.X, v.Y)
 		}
-		rv := model.NewVec2(v.X, v.Y)
+		rv := model.Vect2(v.X, v.Y)
 		if rv.X < 0 {
 			rv.X = -rv.X - 1
 		}
@@ -36,9 +36,9 @@ func GetRadianceMap(board [][]float32, sign float32, opts ...option) [][]float32
 	}
 
 	castRadiance := func(chain *model.VecStack) {
-		queue := make([]*castItem, chain.Size())
+		queue := make([]castItem, chain.Size())
 		for i, v := range chain.Nodes() {
-			queue[i] = &castItem{
+			queue[i] = castItem{
 				vec:   v,
 				level: 0,
 			}
@@ -68,7 +68,7 @@ func GetRadianceMap(board [][]float32, sign float32, opts ...option) [][]float32
 
 				visited[nv.HashCode()] = struct {
 				}{}
-				queue = append(queue, &castItem{
+				queue = append(queue, castItem{
 					vec:   nv,
 					level: item.level + 1,
 				})
@@ -78,7 +78,7 @@ func GetRadianceMap(board [][]float32, sign float32, opts ...option) [][]float32
 
 	for x := int32(0); x < width; x++ {
 		for y := int32(0); y < height; y++ {
-			v := model.NewVec2(x, y)
+			v := model.Vect2(x, y)
 
 			if board[y][x] != sign || visited[v.HashCode()] != nil {
 				continue

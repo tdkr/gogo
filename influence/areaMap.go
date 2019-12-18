@@ -11,7 +11,7 @@ func GetAreaMap(board [][]float32) [][]float32 {
 
 	for x := int32(0); x < width; x++ {
 		for y := int32(0); y < height; y++ {
-			v := model.NewVec2(x, y)
+			v := model.Vect2(x, y)
 
 			if result[y][x] != model.StoneSignNone {
 				continue
