@@ -13,7 +13,7 @@ func GetRadianceMap(board [][]float32, sign float32, opts ...option) [][]float32
 	o := NewOptions(opts...)
 	width, height := GetMatrixSize(board)
 	visited := make(map[int32]interface{})
-	result := NewFloatMatrix(board, 0)
+	result := NewFloatMatrix(len(board), len(board[0]), 0)
 
 	getMirroredVertex := func(v *model.Vector2) *model.Vector2 {
 		if isValidVertex(board, int(v.X), int(v.Y)) {
@@ -35,7 +35,7 @@ func GetRadianceMap(board [][]float32, sign float32, opts ...option) [][]float32
 		return rv
 	}
 
-	castRadiance := func(chain *model.Stack) {
+	castRadiance := func(chain *model.VecStack) {
 		queue := make([]*castItem, chain.Size())
 		for i, v := range chain.Nodes() {
 			queue[i] = &castItem{

@@ -7,7 +7,7 @@ import (
 func GetNearestNeighborMap(board [][]float32, sign float32) [][]float32 {
 	var inf float32 = math.MaxFloat32
 	var min float32 = inf
-	result := NewFloatMatrix(board, inf)
+	result := NewFloatMatrix(len(board), len(board[0]), inf)
 	width, height := GetMatrixSize(board)
 
 	f := func(x int32, y int32) {

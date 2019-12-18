@@ -14,7 +14,7 @@ func getNeighbors(vec *model.Vector2) []*model.Vector2 {
 	}
 }
 
-func getChainInner(board [][]float32, vec *model.Vector2, result *model.Stack, visited map[int32]interface{}, sign float32) {
+func getChainInner(board [][]float32, vec *model.Vector2, result *model.VecStack, visited map[int32]interface{}, sign float32) {
 	result.Push(vec)
 	visited[vec.HashCode()] = struct {
 	}{}
@@ -28,9 +28,9 @@ func getChainInner(board [][]float32, vec *model.Vector2, result *model.Stack, v
 	}
 }
 
-func GetChain(board [][]float32, v *model.Vector2) *model.Stack {
+func GetChain(board [][]float32, v *model.Vector2) *model.VecStack {
 	sign := board[v.Y][v.X]
-	result := model.NewStack()
+	result := model.NewVecStack()
 	visited := make(map[int32]interface{})
 	getChainInner(board, v, result, visited, sign)
 	return result
@@ -109,12 +109,12 @@ func GetMatrixSize(data [][]float32) (int32, int32) {
 	}
 }
 
-func NewFloatMatrix(data [][]float32, val float32) [][]float32 {
-	ret := make([][]float32, len(data))
-	for i, v := range data {
-		ret[i] = make([]float32, len(v))
-		for i2, _ := range v {
-			ret[i][i2] = val
+func NewFloatMatrix(w, h int, val float32) [][]float32 {
+	ret := make([][]float32, h)
+	for i := 0; i < h; i++ {
+		ret[i] = make([]float32, w)
+		for j := 0; j < w; j++ {
+			ret[i][j] = val
 		}
 	}
 	return ret

@@ -1,6 +1,11 @@
 package model
 
-import "math"
+import (
+	"bytes"
+	"crypto/md5"
+	"math"
+	"strconv"
+)
 
 const (
 	StoneSignNone  = -2
@@ -148,7 +153,7 @@ func (board *Board) GetNeighbors(vec *Vector2, ignoreBoard bool) []*Vector2 {
 	return result
 }
 
-func (board *Board) getConnectedComponentInner(vec *Vector2, signs map[int32]interface{}, result *Stack) {
+func (board *Board) getConnectedComponentInner(vec *Vector2, signs map[int32]interface{}, result *VecStack) {
 	if !board.HasVertex(vec) {
 		return
 	}
@@ -168,15 +173,15 @@ func (board *Board) getConnectedComponentInner(vec *Vector2, signs map[int32]int
 	}
 }
 
-func (board *Board) GetConnectedComponent(vec *Vector2, signs map[int32]interface{}) *Stack {
-	result := NewStack()
+func (board *Board) GetConnectedComponent(vec *Vector2, signs map[int32]interface{}) *VecStack {
+	result := NewVecStack()
 	board.getConnectedComponentInner(vec, signs, result)
 	return result
 }
 
-func (board *Board) GetChain(vec *Vector2) *Stack {
+func (board *Board) GetChain(vec *Vector2) *VecStack {
 	sign := board.Get(vec)
-	result := NewStack()
+	result := NewVecStack()
 	board.getConnectedComponentInner(vec, map[int32]interface{}{
 		sign: struct {
 		}{},
@@ -314,7 +319,7 @@ func (board *Board) MakeMove(sign int32, vec *Vector2) *Board {
 
 		for _, cv := range move.GetChain(v).Nodes() {
 			move.Set(cv, 0)
-			move.captures[(-sign)+1/2]++
+			move.captures[(sign+1)/2]++
 		}
 	}
 
@@ -389,12 +394,175 @@ func (board *Board) GenerateAscii() string {
 	return ""
 }
 
-//TODO
-func (board *Board) GetPositionHash() string {
-	return ""
+func (board *Board) GetPositionHash() [16]byte {
+	buffer := bytes.NewBuffer([]byte{})
+	buffer.WriteByte('{')
+	for _, v := range board.arrangement {
+		buffer.WriteByte('{')
+		for _, v2 := range v {
+			buffer.WriteString(strconv.Itoa(int(v2)))
+		}
+		buffer.WriteByte('}')
+	}
+	buffer.WriteByte('}')
+	return md5.Sum(buffer.Bytes())
 }
 
 //TODO
 func (board *Board) GetHash() string {
 	return ""
+}
+
+func (board *Board) Equals(b *Board) bool {
+	if board == nil || b == nil || board.height != b.height || board.width != b.width {
+		return false
+	}
+	for i := int32(0); i < board.width; i++ {
+		for j := int32(0); j < board.height; j++ {
+			if board.arrangement[i][j] != b.arrangement[i][j] {
+				return false
+			}
+		}
+	}
+	return true
+}
+
+func (board *Board) GetVertexBySign(sign int32) []*Vector2 {
+	ret := make([]*Vector2, 0)
+	for i := int32(0); i < board.width; i++ {
+		for j := int32(0); j < board.height; j++ {
+			if board.arrangement[i][j] == sign {
+				ret = append(ret, NewVec2(i, j))
+			}
+		}
+	}
+	return ret
+}
+
+func (board *Board) MakePseudoMove(sign int32, vec *Vector2) []*Vector2 {
+	neighbors := board.GetNeighbors(vec, false)
+	checkCapture := false
+	checkMultiDeadChains := false
+
+	allSame := true
+	for _, v := range neighbors {
+		if board.Get(v) != sign {
+			allSame = false
+		}
+	}
+	if allSame {
+		return nil
+	}
+
+	board.Set(vec, sign)
+
+	if !board.HasLiberties(vec) {
+		isPointChain := true
+		for _, v := range neighbors {
+			if board.Get(v) == sign {
+				isPointChain = false
+			}
+		}
+
+		checkMultiDeadChains = isPointChain
+		checkCapture = !isPointChain
+	}
+
+	dead := make([]*Vector2, 0)
+	deadChains := 0
+
+	for _, v := range neighbors {
+		if board.Get(v) != -sign || board.HasLiberties(v) {
+			continue
+		}
+
+		chain := board.GetChain(v)
+		deadChains += 1
+
+		for _, cv := range chain.Nodes() {
+			board.Set(cv, 0)
+			dead = append(dead, cv)
+		}
+	}
+
+	if checkMultiDeadChains && deadChains <= 1 ||
+		checkCapture && len(dead) == 0 {
+		for _, v := range dead {
+			board.Set(v, -sign)
+		}
+		board.Set(vec, 0)
+		return nil
+	}
+
+	return dead
+}
+
+func (board *Board) GetFloatingStones() *VecStack {
+	visited := make(map[int32]interface{})
+	result := NewVecStack()
+
+	for i := int32(0); i < board.width; i++ {
+		for j := int32(0); j < board.height; j++ {
+			v := NewVec2(i, j)
+
+			if board.Get(v) != StoneSignEmpty || visited[v.HashCode()] != nil {
+				continue
+			}
+
+			posArea := board.GetConnectedComponent(v, map[int32]interface{}{
+				StoneSignWhite: struct {
+				}{},
+				StoneSignEmpty: struct {
+				}{},
+			})
+			negArea := board.GetConnectedComponent(v, map[int32]interface{}{
+				StoneSignEmpty: struct {
+				}{},
+				StoneSignBlack: struct {
+				}{},
+			})
+			posDead := make([]*Vector2, 0)
+			negDead := make([]*Vector2, 0)
+			posDiff, negDiff := 0, 0
+			for _, v := range posArea.Nodes() {
+				if board.Get(v) == StoneSignWhite {
+					posDead = append(posDead, v)
+				} else if negArea.Find(v) < 0 {
+					posDiff++
+				}
+			}
+			for _, v := range negArea.Nodes() {
+				if board.Get(v) == StoneSignBlack {
+					negDead = append(negDead, v)
+				} else if posArea.Find(v) < 0 {
+					negDiff++
+				}
+			}
+
+			favorNeg := negDiff <= 1 && len(negDead) <= len(posDead)
+			favorPos := posDiff <= 1 && len(posDead) <= len(negDead)
+
+			var actualArea *VecStack = nil
+			var actualDead []*Vector2 = nil
+			if !favorNeg && favorPos {
+				actualArea = posArea
+				actualDead = posDead
+			} else if favorNeg && !favorPos {
+				actualArea = negArea
+				actualDead = negDead
+			} else {
+				actualArea = board.GetChain(v)
+			}
+			for _, v := range actualArea.Nodes() {
+				visited[v.HashCode()] = struct {
+				}{}
+			}
+			if actualDead != nil {
+				for _, v := range actualDead {
+					result.Push(v)
+				}
+			}
+		}
+	}
+	return result
 }

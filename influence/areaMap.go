@@ -5,7 +5,7 @@ import (
 )
 
 func GetAreaMap(board [][]float32) [][]float32 {
-	result := NewFloatMatrix(board, model.StoneSignNone)
+	result := NewFloatMatrix(len(board), len(board[0]), model.StoneSignNone)
 
 	width, height := GetMatrixSize(board)
 

@@ -20,7 +20,7 @@ func GetInfluenceMap(board [][]float32, opts ...option) [][]float32 {
 	max := float32(math.MaxFloat32)
 	min := -max
 
-	result := NewFloatMatrix(board, 0)
+	result := NewFloatMatrix(len(board), len(board[0]), 0)
 
 	for x := int32(0); x < width; x++ {
 		for y := int32(0); y < height; y++ {
