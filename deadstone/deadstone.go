@@ -6,7 +6,7 @@ import (
 	"math/rand"
 )
 
-func playTillEnd(board *model.Board, sign int32, rnd rand.Rand) {
+func playTillEnd(board *model.Board, sign int32, rnd *rand.Rand) {
 	illegalVerts := make([]model.Vector2, 0, 0)
 	finished := [2]bool{false, false}
 	freeVerts := board.GetVertexBySign(model.StoneSignEmpty)
@@ -15,7 +15,7 @@ func playTillEnd(board *model.Board, sign int32, rnd rand.Rand) {
 		makeMove := false
 
 		for len(freeVerts) > 0 {
-			rndIndex := rand.Int31n(int32(len(freeVerts)))
+			rndIndex := rnd.Int31n(int32(len(freeVerts)))
 			rndVec := freeVerts[rndIndex]
 
 			freeVerts[rndIndex] = freeVerts[len(freeVerts)-1]
@@ -71,7 +71,7 @@ func playTillEnd(board *model.Board, sign int32, rnd rand.Rand) {
 	}
 }
 
-func getProbalityMap(board *model.Board, iterations int32, rand rand.Rand) [][]float32 {
+func getProbalityMap(board *model.Board, iterations int32, rand *rand.Rand) [][]float32 {
 	result := influence.NewFloatMatrix(int(board.Width()), int(board.Height()), 0)
 
 	whiteSigns := influence.NewFloatMatrix(int(board.Width()), int(board.Height()), 0)
@@ -114,7 +114,7 @@ func getProbalityMap(board *model.Board, iterations int32, rand rand.Rand) [][]f
 	return result
 }
 
-func Guess(board *model.Board, finished bool, iteration int32, rnd rand.Rand) *model.VecStack {
+func Guess(board *model.Board, finished bool, iteration int32, rnd *rand.Rand) *model.VecStack {
 	var floating *model.VecStack = nil
 	if finished {
 		floating = board.GetFloatingStones()
