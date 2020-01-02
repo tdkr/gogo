@@ -35,14 +35,16 @@ func NewBoard(opts ...option) *Board {
 	if o.height != 0 {
 		board.height = o.height
 	}
+	board.arrangement = make([][]int32, board.height)
+	for i := int32(0); i < board.height; i++ {
+		board.arrangement[i] = make([]int32, board.width)
+	}
 	if o.arrangement != nil {
-		board.arrangement = o.arrangement
-	} else {
-		board.arrangement = make([][]int32, board.height)
-		for i := int32(0); i < board.height; i++ {
-			board.arrangement[i] = make([]int32, board.width)
+		for i, v := range o.arrangement {
+			for i2, v2 := range v {
+				board.arrangement[i][i2] = v2
+			}
 		}
-
 	}
 	if o.captures != nil {
 		board.captures = o.captures
