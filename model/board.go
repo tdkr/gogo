@@ -15,7 +15,6 @@ const (
 )
 
 type Board struct {
-	size        int32
 	width       int32
 	height      int32
 	captures    []int32
@@ -82,7 +81,7 @@ func (board *Board) Clone() *Board {
 }
 
 func (board *Board) Diff(b *Board) []Vector2 {
-	if board.width != b.width || board.height != b.height {
+	if b == nil || board == nil || board.width != b.width || board.height != b.height {
 		return nil
 	}
 
@@ -148,14 +147,18 @@ func (board *Board) GetNeighbors(vec Vector2, ignoreBoard bool) []Vector2 {
 	}
 
 	result := make([]Vector2, 0, 4)
-	if vec.X > 0 {
-		result = append(result, Vect2(vec.X-1, vec.Y))
+	if vec.X >= 0 {
+		if vec.X > 0 {
+			result = append(result, Vect2(vec.X-1, vec.Y))
+		}
 		if vec.X < board.width-1 {
 			result = append(result, Vect2(vec.X+1, vec.Y))
 		}
 	}
-	if vec.Y > 0 {
-		result = append(result, Vect2(vec.X, vec.Y-1))
+	if vec.Y >= 0 {
+		if vec.Y > 0 {
+			result = append(result, Vect2(vec.X, vec.Y-1))
+		}
 		if vec.Y < board.height-1 {
 			result = append(result, Vect2(vec.X, vec.Y+1))
 		}
@@ -458,6 +461,7 @@ func (board *Board) MakePseudoMove(sign int32, vec Vector2) []Vector2 {
 	for _, v := range neighbors {
 		if board.Get(v) != sign {
 			allSame = false
+			break
 		}
 	}
 	if allSame {
@@ -471,6 +475,7 @@ func (board *Board) MakePseudoMove(sign int32, vec Vector2) []Vector2 {
 		for _, v := range neighbors {
 			if board.Get(v) == sign {
 				isPointChain = false
+				break
 			}
 		}
 
