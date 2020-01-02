@@ -18,12 +18,11 @@ func playTillEnd(board *model.Board, sign int32, rnd *rand.Rand) {
 			rndIndex := rnd.Int31n(int32(len(freeVertices) - illegalCnt))
 			rndVertex := freeVertices[rndIndex]
 
+			tmp := freeVertices[rndIndex]
 			freeVertices[rndIndex] = freeVertices[len(freeVertices)-1-illegalCnt]
-			//freeVertices = freeVertices[:len(freeVertices)-1]
+			freeVertices[len(freeVertices)-1-illegalCnt] = tmp
 
 			if deadVertices := board.MakePseudoMove(sign, rndVertex); deadVertices != nil {
-				freeVertices = append(freeVertices, deadVertices...)
-
 				if sign < 0 {
 					finished[0] = false
 				} else {
@@ -31,6 +30,9 @@ func playTillEnd(board *model.Board, sign int32, rnd *rand.Rand) {
 				}
 
 				makeMove = true
+
+				freeVertices[rndIndex] = freeVertices[len(freeVertices)-1]
+				freeVertices = append(freeVertices[:len(freeVertices)-1], deadVertices...)
 				break
 			} else {
 				illegalCnt++
@@ -43,7 +45,6 @@ func playTillEnd(board *model.Board, sign int32, rnd *rand.Rand) {
 			finished[1] = !makeMove
 		}
 
-		freeVertices = freeVertices[:len(freeVertices)-1-illegalCnt]
 		sign = -sign
 	}
 
