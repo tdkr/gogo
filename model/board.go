@@ -47,7 +47,7 @@ func NewBoard(opts ...option) *Board {
 		}
 	}
 	if o.captures != nil {
-		board.captures = o.captures
+		copy(board.captures, o.captures)
 	}
 	return board
 }
