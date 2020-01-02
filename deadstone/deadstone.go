@@ -7,22 +7,22 @@ import (
 )
 
 func playTillEnd(board *model.Board, sign int32, rnd *rand.Rand) {
-	illegalVerts := make([]model.Vector2, 0, 0)
 	finished := [2]bool{false, false}
-	freeVerts := board.GetVertexBySign(model.StoneSignEmpty)
+	freeVertices := board.GetVertexBySign(model.StoneSignEmpty)
 
-	for len(freeVerts) > 0 && (!finished[0] || !finished[1]) {
+	for len(freeVertices) > 0 && (!finished[0] || !finished[1]) {
+		illegalCnt := 0
 		makeMove := false
 
-		for len(freeVerts) > 0 {
-			rndIndex := rnd.Int31n(int32(len(freeVerts)))
-			rndVec := freeVerts[rndIndex]
+		for len(freeVertices)-illegalCnt > 0 {
+			rndIndex := rnd.Int31n(int32(len(freeVertices) - illegalCnt))
+			rndVertex := freeVertices[rndIndex]
 
-			freeVerts[rndIndex] = freeVerts[len(freeVerts)-1]
-			freeVerts = freeVerts[:len(freeVerts)-1]
+			freeVertices[rndIndex] = freeVertices[len(freeVertices)-1-illegalCnt]
+			//freeVertices = freeVertices[:len(freeVertices)-1]
 
-			if deadVerts := board.MakePseudoMove(sign, rndVec); deadVerts != nil {
-				freeVerts = append(freeVerts, deadVerts...)
+			if deadVertices := board.MakePseudoMove(sign, rndVertex); deadVertices != nil {
+				freeVertices = append(freeVertices, deadVertices...)
 
 				if sign < 0 {
 					finished[0] = false
@@ -33,7 +33,7 @@ func playTillEnd(board *model.Board, sign int32, rnd *rand.Rand) {
 				makeMove = true
 				break
 			} else {
-				illegalVerts = append(illegalVerts, rndVec)
+				illegalCnt++
 			}
 		}
 
@@ -43,7 +43,7 @@ func playTillEnd(board *model.Board, sign int32, rnd *rand.Rand) {
 			finished[1] = !makeMove
 		}
 
-		freeVerts = append(freeVerts, illegalVerts...)
+		freeVertices = freeVertices[:len(freeVertices)-1-illegalCnt]
 		sign = -sign
 	}
 
@@ -71,7 +71,7 @@ func playTillEnd(board *model.Board, sign int32, rnd *rand.Rand) {
 	}
 }
 
-func getProbalityMap(board *model.Board, iterations int32, rand *rand.Rand) [][]float32 {
+func getProbabilityMap(board *model.Board, iterations int32, rand *rand.Rand) [][]float32 {
 	result := influence.NewFloatMatrix(int(board.Width()), int(board.Height()), 0)
 
 	whiteSigns := influence.NewFloatMatrix(int(board.Width()), int(board.Height()), 0)
@@ -125,7 +125,7 @@ func Guess(board *model.Board, finished bool, iteration int32, rnd *rand.Rand) *
 		floating = model.NewVecStack()
 	}
 
-	probMap := getProbalityMap(board, iteration, rnd)
+	probMap := getProbabilityMap(board, iteration, rnd)
 	result := model.NewVecStack()
 	visited := make(map[int32]interface{})
 

@@ -454,20 +454,20 @@ func (board *Board) GetVertexBySign(sign int32) []Vector2 {
 
 func (board *Board) MakePseudoMove(sign int32, vec Vector2) []Vector2 {
 	neighbors := board.GetNeighbors(vec, false)
-	checkCapture := false
-	checkMultiDeadChains := false
 
-	allSame := true
+	isEye := true
 	for _, v := range neighbors {
 		if board.Get(v) != sign {
-			allSame = false
+			isEye = false
 			break
 		}
 	}
-	if allSame {
+	if isEye {
 		return nil
 	}
 
+	checkCapture := false
+	checkMultiDeadChains := false
 	board.Set(vec, sign)
 
 	if !board.HasLiberties(vec) {
@@ -500,8 +500,8 @@ func (board *Board) MakePseudoMove(sign int32, vec Vector2) []Vector2 {
 		}
 	}
 
-	if checkMultiDeadChains && deadChains <= 1 ||
-		checkCapture && len(dead) == 0 {
+	if (checkMultiDeadChains && deadChains <= 1) ||
+		(checkCapture && len(dead) == 0) {
 		for _, v := range dead {
 			board.Set(v, -sign)
 		}
