@@ -25,8 +25,9 @@ type Board struct {
 func NewBoard(opts ...option) *Board {
 	o := NewOptions(opts...)
 	board := &Board{
-		width:  19,
-		height: 19,
+		width:    19,
+		height:   19,
+		captures: []int32{},
 	}
 	if o.width != 0 {
 		board.width = o.width
@@ -36,6 +37,12 @@ func NewBoard(opts ...option) *Board {
 	}
 	if o.arrangement != nil {
 		board.arrangement = o.arrangement
+	} else {
+		board.arrangement = make([][]int32, board.height)
+		for i := int32(0); i < board.height; i++ {
+			board.arrangement[i] = make([]int32, board.width)
+		}
+
 	}
 	if o.captures != nil {
 		board.captures = o.captures
@@ -68,7 +75,8 @@ func (board *Board) Set2(x, y, sign int32) {
 }
 
 func (board *Board) Clone() *Board {
-	return nil
+	dup := NewBoard(Width(board.width), Height(board.height), Arrangement(board.arrangement), Captures(board.captures))
+	return dup
 }
 
 func (board *Board) Diff(b *Board) []Vector2 {
