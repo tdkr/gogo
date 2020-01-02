@@ -26,7 +26,7 @@ func NewBoard(opts ...option) *Board {
 	board := &Board{
 		width:    19,
 		height:   19,
-		captures: []int32{},
+		captures: []int32{0, 0},
 	}
 	if o.width != 0 {
 		board.width = o.width
