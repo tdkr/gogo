@@ -6,6 +6,9 @@ import (
 	"github.com/tdkr/gogo/model"
 )
 
+var zero = float32(0)
+var negZero = -zero
+
 func getNeighbors(vec model.Vector2) []model.Vector2 {
 	return []model.Vector2{
 		{vec.X - 1, vec.Y},
@@ -55,10 +58,13 @@ func GetFloatSign(value float32) float32 {
 		return 1
 	case value < 0:
 		return -1
-	case value == 0:
-		return 0
+	default:
+		if math.Signbit(float64(value)) {
+			return negZero
+		} else {
+			return zero
+		}
 	}
-	return 0
 }
 
 func MinInt(vals ...int32) int32 {

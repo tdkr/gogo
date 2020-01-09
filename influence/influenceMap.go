@@ -73,28 +73,30 @@ func GetInfluenceMap(board [][]float32, opts ...option) [][]float32 {
 
 	for x := int32(0); x < width; x++ {
 		for y := int32(0); y < height; y++ {
+
 			if areaMap[y][x] != 0 {
 				continue
 			}
 
-			v := model.Vect2(x, y)
+			vec := model.Vect2(x, y)
 
 			// Prevent single point areas
 
 			mSign := GetFloatSign(result[y][x])
 
 			if mSign != 0 {
-				cnt1, cnt2 := 0, 0
-				for _, v := range getNeighbors(v) {
+				cnt := 0
+				for _, v := range getNeighbors(vec) {
 					if isValidVertex(board, int(v.X), int(v.Y)) {
-						cnt1++
-						if GetFloatSign(board[v.Y][v.X]) == mSign {
-							cnt2++
+						if GetFloatSign(result[v.Y][v.X]) != mSign {
+							cnt++
+						} else {
+							cnt = 0
+							break
 						}
 					}
 				}
-
-				if cnt1 >= 2 && cnt2 == cnt1 {
+				if cnt >= 2 {
 					result[y][x] = 0
 					continue
 				}
@@ -103,17 +105,19 @@ func GetInfluenceMap(board [][]float32, opts ...option) [][]float32 {
 			// Fix ragged areas
 
 			if mSign != 0 {
-				posNeighbors := make([]model.Vector2, 0)
-				for _, nv := range getNeighbors(v) {
+				var v *model.Vector2 = nil
+				for _, nv := range getNeighbors(vec) {
 					if isValidVertex(board, int(nv.X), int(nv.Y)) && GetFloatSign(result[nv.Y][nv.X]) == mSign {
-						posNeighbors = append(posNeighbors, nv)
+						if v != nil {
+							v = nil
+							break
+						}
+						v = &nv
 					}
 				}
 
-				if len(posNeighbors) == 1 {
-					pv := posNeighbors[0]
-
-					if board[pv.Y][pv.X] == mSign {
+				if v != nil {
+					if board[v.Y][v.X] == mSign {
 						result[y][x] = 0
 						continue
 					}
@@ -126,7 +130,7 @@ func GetInfluenceMap(board [][]float32, opts ...option) [][]float32 {
 
 			if distance <= 2 && mSign == 0 {
 				signedNeighbors := make([]model.Vector2, 0)
-				for _, nv := range getNeighbors(v) {
+				for _, nv := range getNeighbors(vec) {
 					if isValidVertex(result, int(nv.X), int(nv.Y)) && result[nv.Y][nv.X] != 0 {
 						signedNeighbors = append(signedNeighbors, nv)
 					}
@@ -139,7 +143,7 @@ func GetInfluenceMap(board [][]float32, opts ...option) [][]float32 {
 					if len(signedNeighbors) >= 3 || v1.X == v2.X || v1.Y == v2.Y {
 						flag := true
 						for _, sv := range signedNeighbors {
-							if result[sv.Y][sv.X] != s {
+							if GetFloatSign(result[sv.Y][sv.X]) != s {
 								flag = false
 								break
 							}
@@ -176,5 +180,6 @@ func GetInfluenceMap(board [][]float32, opts ...option) [][]float32 {
 		}
 	}
 
+	//fmt.Println("==========", result)
 	return GetAreaMap(result)
 }
