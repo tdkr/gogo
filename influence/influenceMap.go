@@ -105,18 +105,18 @@ func GetInfluenceMap(board [][]float32, opts ...option) [][]float32 {
 			// Fix ragged areas
 
 			if mSign != 0 {
-				var v *model.Vector2 = nil
+				v := model.Vect2(-1, -1)
 				for _, nv := range getNeighbors(vec) {
 					if isValidVertex(board, int(nv.X), int(nv.Y)) && GetFloatSign(result[nv.Y][nv.X]) == mSign {
-						if v != nil {
-							v = nil
+						if v.X >= 0 {
+							v.X = -1
 							break
 						}
-						v = &nv
+						v = nv
 					}
 				}
 
-				if v != nil {
+				if v.X > 0 {
 					if board[v.Y][v.X] == mSign {
 						result[y][x] = 0
 						continue
