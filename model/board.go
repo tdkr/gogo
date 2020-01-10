@@ -587,7 +587,7 @@ func (board *Board) SetCapture(vec Vector2) {
 	if board.Get(vec) == StoneSignEmpty {
 		return
 	}
-	board.captures[sign+1/2]++
+	board.captures[(sign+1)/2]++
 	board.Set(vec, StoneSignEmpty)
 }
 
