@@ -332,7 +332,7 @@ func (board *Board) MakeMove(sign int32, vec Vector2) *Board {
 
 		for _, cv := range move.GetChain(v).Nodes() {
 			move.Set(cv, 0)
-			move.captures[(sign+1)/2]++
+			move.captures[(-sign+1)/2]++
 		}
 	}
 
@@ -587,13 +587,8 @@ func (board *Board) SetCapture(vec Vector2) {
 	if board.Get(vec) == StoneSignEmpty {
 		return
 	}
-	idx := getSignIndex(sign)
-	board.captures[idx]++
+	board.captures[sign+1/2]++
 	board.Set(vec, StoneSignEmpty)
-}
-
-func getSignIndex(sign int32) int32 {
-	return (-sign + 1) / 2
 }
 
 func (board *Board) Captures() []int32 {
