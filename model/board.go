@@ -174,32 +174,27 @@ func (board *Board) getConnectedComponentInner(vec Vector2, signs map[int32]inte
 	result.Push(vec)
 
 	for _, v := range board.GetNeighbors(vec, false) {
-		if result.Find(v) > 0 {
+		if result.Find(v) >= 0 || signs[board.Get(v)] == nil {
 			continue
 		}
-		sign := board.Get(v)
-		if signs[sign] == nil {
-			continue
-		}
-		result.Push(v)
+
 		board.getConnectedComponentInner(v, signs, result)
 	}
 }
 
 func (board *Board) GetConnectedComponent(vec Vector2, signs map[int32]interface{}) *VecStack {
 	result := NewVecStack()
+	if signs == nil {
+		signs = make(map[int32]interface{})
+		signs[board.Get(vec)] = struct {
+		}{}
+	}
 	board.getConnectedComponentInner(vec, signs, result)
 	return result
 }
 
 func (board *Board) GetChain(vec Vector2) *VecStack {
-	sign := board.Get(vec)
-	result := NewVecStack()
-	board.getConnectedComponentInner(vec, map[int32]interface{}{
-		sign: struct {
-		}{},
-	}, result)
-	return result
+	return board.GetConnectedComponent(vec, nil)
 }
 
 func (board *Board) hasLibertiesInner(vec Vector2, visited map[int32]interface{}, sign int32) bool {
@@ -242,10 +237,7 @@ func (board *Board) GetRelatedChain(vec Vector2) []Vector2 {
 		return []Vector2{}
 	}
 
-	signs := make(map[int32]interface{})
-	signs[sign] = struct {
-	}{}
-	area := board.GetConnectedComponent(vec, signs).Nodes()
+	area := board.GetConnectedComponent(vec, nil).Nodes()
 
 	cnt := 0
 	i := 0
@@ -335,8 +327,6 @@ func (board *Board) MakeMove(sign int32, vec Vector2) *Board {
 			move.captures[(-sign+1)/2]++
 		}
 	}
-
-	move.Set(vec, sign)
 
 	// Detect suicide
 	if len(deadNeighbors) == 0 && !move.HasLiberties(vec) {
